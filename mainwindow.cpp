@@ -163,7 +163,8 @@ void MainWindow::on_actionSaveAs_triggered()
 
     this->mapName = name;
     this->saveMap();
-    this->setWindowTitle(this->mapName);
+    name.replace(path + '/', "");
+    this->setWindowTitle(name);
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -198,7 +199,8 @@ void MainWindow::on_actionOpen_triggered()
     }
 
     this->mapName = name;
-    this->setWindowTitle(this->mapName);
+    name.replace(path + '/', "");
+    this->setWindowTitle(name);
 
     QJsonDocument doc = QJsonDocument::fromJson(text.toUtf8());
     QJsonObject obj = doc.object();
