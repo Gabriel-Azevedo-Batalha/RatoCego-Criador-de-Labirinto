@@ -67,7 +67,10 @@
     <iconset theme="document-save-as"/>
    </property>
    <property name="text">
-    <string>SaveAs</string>
+    <string>Save As</string>
+   </property>
+   <property name="toolTip">
+    <string>Save As</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>

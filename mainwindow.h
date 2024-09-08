@@ -28,7 +28,7 @@ private slots:
     void helpWindow();
     void on_actionSave_triggered();
     void changeCell();
-
+    void copyCell(QString);
     void on_actionNew_triggered();
 
 private:

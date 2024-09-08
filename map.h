@@ -66,6 +66,9 @@ private:
     int visibleRows;
     int visibleCols;
     bool connected;
+
+signals:
+    void cellCopy(QString name);
 };
 
 #endif // MAP_H

@@ -22,12 +22,12 @@ public:
     cellType getCellType();
     void setCellType(cellType newType);
     QPixmap getCellImage();
+    QString getCellName();
 
 private:
     cellType type;
+    QString cellName;
     QPixmap img;
-
-signals:
 };
 
 #endif // CELL_H

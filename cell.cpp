@@ -21,18 +21,23 @@ void Cell::setCellType(cellType newType)
     {
         case cellType::Wall:
             this->img = PixmapStorage::getGlobalStorage().value("wall");
+            this->cellName = "Wall";
             break;
         case cellType::Path:
             this->img = PixmapStorage::getGlobalStorage().value("path");
+            this->cellName = "Path";
             break;
         case cellType::Decision:
             this->img = PixmapStorage::getGlobalStorage().value("decision");
+            this->cellName = "Decision";
             break;
         case cellType::Start:
             this->img = PixmapStorage::getGlobalStorage().value("start");
+            this->cellName = "Start";
             break;
         case cellType::End:
             this->img = PixmapStorage::getGlobalStorage().value("end");
+            this->cellName = "End";
             break;
     }
 
@@ -43,4 +48,9 @@ void Cell::setCellType(cellType newType)
 QPixmap Cell::getCellImage()
 {
     return this->img;
+}
+
+QString Cell::getCellName()
+{
+    return this->cellName;
 }

@@ -96,7 +96,11 @@ void Map::mousePressEvent(QMouseEvent *event)
 {
     Cell* cell = getCell(event);
     if(event->buttons() & Qt::LeftButton) setGridCellType(cell); // Paint
-    else if(event->buttons() & Qt::RightButton) this->selectedCellType = cell->getCellType(); // Pick Cell
+    else if(event->buttons() & Qt::RightButton)
+    {
+        this->selectedCellType = cell->getCellType(); // Pick Cell
+        emit cellCopy(cell->getCellName());
+    }
 }
 
 void Map::mouseMoveEvent(QMouseEvent *event)

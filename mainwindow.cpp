@@ -50,12 +50,15 @@ MainWindow::MainWindow(QWidget *parent) :
     toolbarLayout->addWidget(makeButton("Collapse-Horizontal", SLOT(decreaseCols()), QKeySequence(Qt::Key_Left), false), 5, 1);
 
     toolbarWidget->setLayout(toolbarLayout);
+    toolbarWidget->setObjectName("toolbar");
     m_ui->toolBar->addWidget(toolbarWidget);
 
     // Menu Help
     QAction *helpAction = new QAction("&Help");
     helpAction->setShortcut(QKeySequence(Qt::Key_H));
     connect(helpAction, SIGNAL(triggered()), this, SLOT(helpWindow()));
+
+    connect(m_ui->map, SIGNAL(cellCopy(QString)), this, SLOT(copyCell(QString)));
 
     m_ui->menubar->addAction(helpAction);
 
@@ -71,6 +74,8 @@ MainWindow::~MainWindow()
 QPushButton* MainWindow::makeButton(QString name, const char* slot, QKeySequence key, bool selectable)
 {
     QPushButton* button = new QPushButton;
+
+    button->setObjectName(name);
 
     QPalette pal = button->palette();
     pal.setColor(QPalette::Button, QColor(Qt::white));
@@ -94,6 +99,21 @@ void MainWindow::changeCell()
 {
     QPushButton *clickedButton = qobject_cast<QPushButton *>(sender());
 
+    QPalette oldPal = this->selectedButton->palette();
+    oldPal.setColor(QPalette::Button, QColor(Qt::white));
+    this->selectedButton->setPalette(oldPal);
+
+    QPalette pal = clickedButton->palette();
+    pal.setColor(QPalette::Button, QColor(Qt::blue));
+    clickedButton->setPalette(pal);
+
+    this->selectedButton = clickedButton;
+    repaint();
+}
+
+void MainWindow::copyCell(QString name)
+{
+    QPushButton *clickedButton = m_ui->toolBar->findChild<QWidget *>("toolbar")->findChild<QPushButton *>(name);
     QPalette oldPal = this->selectedButton->palette();
     oldPal.setColor(QPalette::Button, QColor(Qt::white));
     this->selectedButton->setPalette(oldPal);
