@@ -14,7 +14,8 @@ HelpWindow::HelpWindow(QDialog *parent)
     this->setLayout(helpLayout);
 
     this->loadMarkdown(":/help.md");
-
+    // fileDialog->setOption(QFileDialog::DontUseNativeDialog, true);
+    this->resize(700,500);
 }
 
 void HelpWindow::loadMarkdown(QString filepath)
