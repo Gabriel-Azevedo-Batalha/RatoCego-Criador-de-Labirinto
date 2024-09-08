@@ -87,7 +87,7 @@ if(QT_VERSION_MAJOR EQUAL 6)
 endif()
 
 include(InstallRequiredSystemLibraries)
-set(CPACK_PACKAGE_NAME "RC_MapCreator")
+set(CPACK_PACKAGE_NAME "RC-MapCreator")
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Gabriel Batalha e Hugo Bezerra")
 set(CPACK_DEBIAN_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")

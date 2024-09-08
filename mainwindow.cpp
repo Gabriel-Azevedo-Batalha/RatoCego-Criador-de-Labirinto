@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui(new Ui::MainWindow)
 {
     m_ui->setupUi(this);
-    this->setWindowTitle("Criador de Labirinto");
+    this->setWindowTitle("Criador de Labirintos");
 
     // ToolBar
     QWidget* toolbarWidget = new QWidget();
