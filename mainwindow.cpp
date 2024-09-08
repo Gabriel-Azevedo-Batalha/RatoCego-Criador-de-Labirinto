@@ -287,3 +287,16 @@ bool MainWindow::checkSave()
 
     return canSave;
 }
+
+void MainWindow::on_actionNew_triggered()
+{
+    m_ui->map->setVisibleCols(10);
+    m_ui->map->setVisibleRows(10);
+    m_ui->map->clearGrid();
+    m_ui->map->setCellAtGrid(0, 0, cellType::Start);
+    m_ui->map->setCellAtGrid(9, 9, cellType::End);
+    this->setWindowTitle("Criador de Labirintos");
+    this->mapName = "";
+    repaint();
+}
+

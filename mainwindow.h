@@ -29,6 +29,8 @@ private slots:
     void on_actionSave_triggered();
     void changeCell();
 
+    void on_actionNew_triggered();
+
 private:
     QString mapName;
     QPushButton* makeButton(QString name, const char* slot, QKeySequence key, bool selectable);
