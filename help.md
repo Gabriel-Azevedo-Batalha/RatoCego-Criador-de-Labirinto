@@ -21,3 +21,4 @@ Através do Criador de Labirintos é possível criar mapas para o Labirinto do R
 - Salvar um mapa como: **Ctrl + Shift + S**
 ### Outros
 - Abrir menu de ajuda: **H**
+- Copiar célula: **Botão Direito**
