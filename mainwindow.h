@@ -25,11 +25,14 @@ public:
 private slots:
     void on_actionSaveAs_triggered();
     void on_actionOpen_triggered();
-    void helpWindow();
+    void on_actionNew_triggered();
     void on_actionSave_triggered();
+    void helpWindow();
     void changeCell();
     void copyCell(QString);
-    void on_actionNew_triggered();
+    void generatePoints();
+    void clearPoints();
+    void floodFill();
 
 private:
     QString mapName;

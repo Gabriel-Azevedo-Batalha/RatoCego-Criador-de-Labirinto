@@ -49,6 +49,32 @@ MainWindow::MainWindow(QWidget *parent) :
     toolbarLayout->addWidget(makeButton("Expand-Horizontal", SLOT(increaseCols()), QKeySequence(Qt::Key_Right), false), 5, 0);
     toolbarLayout->addWidget(makeButton("Collapse-Horizontal", SLOT(decreaseCols()), QKeySequence(Qt::Key_Left), false), 5, 1);
 
+    toolbarLayout->addItem(new QSpacerItem(0, 50), 6, 0);
+
+    QFrame *line2;
+    line2 = new QFrame();
+    line2->setFrameShape(QFrame::HLine);
+    toolbarLayout->addWidget(line2, 6, 0, 1, 2);
+
+
+    QPushButton* generateButton = new QPushButton;
+    generateButton->setText("Generate Decision Points");
+    connect(generateButton, SIGNAL(clicked()), this, SLOT(generatePoints()));
+    // Colocar no final da página?
+    // toolbarLayout->addItem(new QSpacerItem(0, 200), 7, 0);
+    toolbarLayout->addWidget(generateButton, 8, 0, 1, 2);
+
+    QPushButton* clearDecisionsButton = new QPushButton;
+    clearDecisionsButton->setText("Clear Decision Points");
+    connect(clearDecisionsButton, SIGNAL(clicked()), this, SLOT(clearPoints()));
+    toolbarLayout->addWidget(clearDecisionsButton, 9, 0, 1, 2);
+
+    QPushButton* floodFillButton = new QPushButton;
+    floodFillButton->setText("Fill inacessible areas");
+    connect(floodFillButton, SIGNAL(clicked()), this, SLOT(floodFill()));
+    toolbarLayout->addWidget(floodFillButton, 10, 0, 1, 2);
+
+
     toolbarWidget->setLayout(toolbarLayout);
     toolbarWidget->setObjectName("toolbar");
     m_ui->toolBar->addWidget(toolbarWidget);
@@ -126,6 +152,22 @@ void MainWindow::copyCell(QString name)
     repaint();
 }
 
+void MainWindow::generatePoints()
+{
+    m_ui->map->generatePoints();
+    repaint();
+}
+
+void MainWindow::clearPoints()
+{
+    m_ui->map->clearPoints();
+    repaint();
+}
+
+void MainWindow::floodFill(){
+    m_ui->map->fillInacessible();
+    repaint();
+}
 
 void MainWindow::helpWindow()
 {
