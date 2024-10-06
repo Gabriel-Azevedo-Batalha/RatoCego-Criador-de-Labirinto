@@ -179,8 +179,8 @@ void MainWindow::saveMap()
 {
     QByteArray json = QJsonDocument(m_ui->map->getJSON()).toJson();
 
-    if(m_ui->map->isConnected())
-    {
+    // if(m_ui->map->isConnected())
+    // {
         QFile file(this->mapName);
         // TODO: Tratamento de erro
         if(!file.open(QIODevice::WriteOnly))
@@ -189,27 +189,27 @@ void MainWindow::saveMap()
             return;
         }
 
-        QCryptographicHash hash = QCryptographicHash(QCryptographicHash::Md5);
-        hash.addData(json);
-        QByteArray hashResult = hash.result().toHex();
+        // QCryptographicHash hash = QCryptographicHash(QCryptographicHash::Md5);
+        // hash.addData(json);
+        // QByteArray hashResult = hash.result().toHex();
 
-        file.write(hashResult);
-        file.write("\n");
+        // file.write(hashResult);
+        // file.write("\n");
 
         file.write(json);
         file.close();
-    }
-    else
-    {
-        QMessageBox messageBox;
-        messageBox.setFixedSize(500,200);
-        messageBox.critical(0, "Não é possível salvar este labirinto", "O Labirinto não possui todos os pontos de decisão conectados");
-    }
+    // }
+    // else
+    // {
+    //     QMessageBox messageBox;
+    //     messageBox.setFixedSize(500,200);
+    //     messageBox.critical(0, "Não é possível salvar este labirinto", "O Labirinto não possui todos os pontos de decisão conectados");
+    // }
 }
 
 void MainWindow::on_actionSaveAs_triggered()
 {
-    if(!this->checkSave()) return;
+    if(!this->canSave()) return;
     QString path = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/RatoCego";
     if (!QDir(path).exists()) QDir().mkdir(path);
     QFileDialog saveDialog = QFileDialog (this, "Save File as", path, "RCMAP Files (*.rcmap)");
@@ -299,7 +299,7 @@ void MainWindow::on_actionSave_triggered()
 
     if(this->mapName.size() > 0)
     {
-        if(!this->checkSave()) return;
+        if(!this->canSave()) return;
         this->saveMap();
     }
     else
@@ -308,7 +308,7 @@ void MainWindow::on_actionSave_triggered()
     }
 }
 
-bool MainWindow::checkSave()
+bool MainWindow::canSave()
 {
     bool canSave = true;
     QPoint start = m_ui->map->getStartPos();
@@ -344,6 +344,11 @@ bool MainWindow::checkSave()
     else if(end.x() >= visibleCols || end.y() >= visibleRows)
     {
         messageBox.critical(0, "Não é possível salvar este labirinto", "O Labirinto não possui célula de saída (4)");
+        canSave = false;
+    }
+    else if(!m_ui->map->isConnected())
+    {
+        messageBox.critical(0, "Não é possível salvar este labirinto", "O Labirinto não possui todos os pontos de decisão conectados");
         canSave = false;
     }
 

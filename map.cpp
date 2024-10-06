@@ -8,7 +8,9 @@
 #include <QDebug>
 #include <QPainterPath>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QMessageBox>
+#include <QCryptographicHash>
 #include <QQueue>
 
 Map::Map(QWidget *parent) : QWidget(parent)
@@ -392,7 +394,23 @@ QString Map::findMoves(int row, int col, Graph& graph)
 
 bool Map::isConnected()
 {
-    return this->connected;
+    Graph graph;
+
+    for(int i=0; i < this->visibleRows; i++)
+    {
+        for(int j=0; j < this->visibleCols; j++)
+        {
+            Cell* cell = getCell(i, j);
+            if(cell->getCellType() == cellType::Decision or cell->getCellType() == cellType::Start)
+            {
+                findMoves(i, j, graph);
+            }
+        }
+    }
+
+    graph.insert(QPair<int, int>(this->endPos.y(), this->endPos.x()), QList<QPair<int, int>>());
+
+    return checkConectivity(graph, false);
 }
 
 QJsonObject Map::getJSON()
@@ -440,7 +458,14 @@ QJsonObject Map::getJSON()
     json.insert("decisionCount", dCount);
     json.insert("decisions", decisions);
 
-    this->connected = checkConectivity(graph, false);
+    // this->connected = checkConectivity(graph, false);
+
+    QByteArray jsonBA = QJsonDocument(json).toJson();
+    QCryptographicHash hash = QCryptographicHash(QCryptographicHash::Md5);
+    hash.addData(jsonBA);
+    QByteArray hashResult = hash.result().toHex();
+
+    json.insert("mapHash", QString::fromStdString(hashResult.toStdString()));
 
     return json;
 }
@@ -464,6 +489,7 @@ void Map::generatePoints()
                 if(j+1 < this->visibleCols and getCell(i, j+1)->getCellType() != cellType::Wall)
                     horizontal++;
 
+                // if(horizontal+vertical > 0)
                 if(horizontal+vertical == 1 or (horizontal > 0 and vertical > 0))
                     setCellAtGrid(i, j, cellType::Decision);
                 else if(horizontal+vertical == 0)
