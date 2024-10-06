@@ -38,7 +38,7 @@ private:
     QString mapName;
     QPushButton* makeButton(QString name, const char* slot, QKeySequence key, bool selectable);
     bool canSave();
-    void saveMap();
+    void writeMapFile();
     Map *m_map;
     Ui::MainWindow *m_ui;
     QPushButton* selectedButton;

@@ -175,36 +175,20 @@ void MainWindow::helpWindow()
     helpWindow->exec();
 }
 
-void MainWindow::saveMap()
+void MainWindow::writeMapFile()
 {
     QByteArray json = QJsonDocument(m_ui->map->getJSON()).toJson();
 
-    // if(m_ui->map->isConnected())
-    // {
-        QFile file(this->mapName);
-        // TODO: Tratamento de erro
-        if(!file.open(QIODevice::WriteOnly))
-        {
-            qDebug() << "File open error";
-            return;
-        }
+    QFile file(this->mapName);
+    // TODO: Tratamento de erro
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        qDebug() << "File open error";
+        return;
+    }
 
-        // QCryptographicHash hash = QCryptographicHash(QCryptographicHash::Md5);
-        // hash.addData(json);
-        // QByteArray hashResult = hash.result().toHex();
-
-        // file.write(hashResult);
-        // file.write("\n");
-
-        file.write(json);
-        file.close();
-    // }
-    // else
-    // {
-    //     QMessageBox messageBox;
-    //     messageBox.setFixedSize(500,200);
-    //     messageBox.critical(0, "Não é possível salvar este labirinto", "O Labirinto não possui todos os pontos de decisão conectados");
-    // }
+    file.write(json);
+    file.close();
 }
 
 void MainWindow::on_actionSaveAs_triggered()
@@ -212,8 +196,8 @@ void MainWindow::on_actionSaveAs_triggered()
     if(!this->canSave()) return;
     QString path = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/RatoCego";
     if (!QDir(path).exists()) QDir().mkdir(path);
-    QFileDialog saveDialog = QFileDialog (this, "Save File as", path, "RCMAP Files (*.rcmap)");
-    saveDialog.setDefaultSuffix(".rcmap");
+    QFileDialog saveDialog = QFileDialog (this, "Save File as", path, "JSON Files (*.json)");
+    saveDialog.setDefaultSuffix(".json");
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     saveDialog.exec();
 
@@ -224,7 +208,8 @@ void MainWindow::on_actionSaveAs_triggered()
     QString name = result.front();
 
     this->mapName = name;
-    this->saveMap();
+    this->writeMapFile();
+
     name.replace(path + '/', "");
     this->setWindowTitle(name);
 }
@@ -234,25 +219,41 @@ void MainWindow::on_actionOpen_triggered()
     QFile file;
     QString path = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/RatoCego";
     if (!QDir(path).exists()) QDir().mkdir(path);
-    QString name = QFileDialog::getOpenFileName(this, "Open File", path, "RCMAP Files (*.rcmap)");
+    QString name = QFileDialog::getOpenFileName(this, "Open File", path, "JSON Files (*.json)");
     if(name.isEmpty() or name.isNull()) return;
 
     file.setFileName(name);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
 
-    QByteArray checksum = file.readLine();
-    checksum.chop(1);
-
-    // Le o json
-    QString text = file.readAll();
-    file.close();
+    // TODO: Tratar caso de arquvios estranhos (Por exemplo, se não existir mapHash)
+    // Extraindo o Json sem a linha "mapHash"
+    QString jsonText;
+    QString foundHash;
+    QTextStream t(&file);
+    while(!t.atEnd())
+    {
+        QString line = t.readLine();
+        if(!line.contains("mapHash"))
+        {
+            jsonText.append(line + "\n");
+        }
+        else
+        {
+            int last = line.toStdString().find_last_of("\"");
+            foundHash = line.mid(last-32,32);
+        }
+    }
 
     // Calcula o hash do json
     QCryptographicHash hash = QCryptographicHash(QCryptographicHash::Md5);
-    hash.addData(text.toUtf8());
+    hash.addData(jsonText.toUtf8());
+
+    // qDebug() << "hash calculado: " << hash.result().toHex();
+
+    // qDebug() << "hash encontrado: " << foundHash;
 
     // Check Sum
-    if(checksum != hash.result().toHex())
+    if(foundHash != hash.result().toHex())
     {
         QMessageBox messageBox;
         messageBox.setFixedSize(500,200);
@@ -264,7 +265,7 @@ void MainWindow::on_actionOpen_triggered()
     name.replace(path + '/', "");
     this->setWindowTitle(name);
 
-    QJsonDocument doc = QJsonDocument::fromJson(text.toUtf8());
+    QJsonDocument doc = QJsonDocument::fromJson(jsonText.toUtf8());
     QJsonObject obj = doc.object();
 
     int w = obj.value(QString("width")).toInt();
@@ -300,7 +301,7 @@ void MainWindow::on_actionSave_triggered()
     if(this->mapName.size() > 0)
     {
         if(!this->canSave()) return;
-        this->saveMap();
+        this->writeMapFile();
     }
     else
     {
