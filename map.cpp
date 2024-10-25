@@ -8,14 +8,16 @@
 #include <QDebug>
 #include <QPainterPath>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QMessageBox>
+#include <QCryptographicHash>
 #include <QQueue>
 
 Map::Map(QWidget *parent) : QWidget(parent)
 {
     this->connected = false;
-    this->rows = 30;
-    this->columns = 30;
+    this->rows = 40;
+    this->columns = 40;
     this->visibleRows = 10;
     this->visibleCols = 10;
     this->startPos = QPoint(0, 0);
@@ -287,17 +289,31 @@ void Map::clearGrid(){
     }
 }
 
+void Map::clearPoints(){
+    for(int i=0; i<this->visibleRows; i++)
+    {
+        for(int j=0; j<this->visibleCols; j++)
+        {
+            if(getCell(i, j)->getCellType() == cellType::Decision)
+                setCellAtGrid(i, j, cellType::Path);
+        }
+    }
+}
+
 // BFS
-bool Map::checkConectivity(const Graph& graph)
+bool Map::checkConectivity(Graph& graph, bool onlyStart)
 {
-    QPair<int, int> node = graph.firstKey();
+    QPair<int, int> node = {this->startPos.y(), this->startPos.x()};
     QMap<QPair<int, int>, bool> visited;
     QQueue<QPair<int, int>> queue;
+    int initialSize = graph.size();
+    bool startEnd = false;
 
     queue.enqueue(node);
     while(!queue.empty())
     {
         node = queue.dequeue();
+        if(node.first == this->endPos.y() and node.second == this->endPos.x()) startEnd = true;
 
         for (const QPair<int, int>& p : graph[node])
         {
@@ -305,9 +321,12 @@ bool Map::checkConectivity(const Graph& graph)
         }
 
         visited.insert(node, true);
+        graph.remove(node);
     }
 
-    if(visited.size() == graph.size())
+    if(onlyStart) return startEnd;
+
+    if(visited.size() == initialSize)
     {
         return true;
     }
@@ -375,7 +394,23 @@ QString Map::findMoves(int row, int col, Graph& graph)
 
 bool Map::isConnected()
 {
-    return this->connected;
+    Graph graph;
+
+    for(int i=0; i < this->visibleRows; i++)
+    {
+        for(int j=0; j < this->visibleCols; j++)
+        {
+            Cell* cell = getCell(i, j);
+            if(cell->getCellType() == cellType::Decision or cell->getCellType() == cellType::Start)
+            {
+                findMoves(i, j, graph);
+            }
+        }
+    }
+
+    graph.insert(QPair<int, int>(this->endPos.y(), this->endPos.x()), QList<QPair<int, int>>());
+
+    return checkConectivity(graph, false);
 }
 
 QJsonObject Map::getJSON()
@@ -423,7 +458,120 @@ QJsonObject Map::getJSON()
     json.insert("decisionCount", dCount);
     json.insert("decisions", decisions);
 
-    this->connected = checkConectivity(graph);
+    // this->connected = checkConectivity(graph, false);
+
+    QByteArray jsonBA = QJsonDocument(json).toJson();
+    QCryptographicHash hash = QCryptographicHash(QCryptographicHash::Md5);
+    hash.addData(jsonBA);
+    QByteArray hashResult = hash.result().toHex();
+
+    json.insert("mapHash", QString::fromStdString(hashResult.toStdString()));
 
     return json;
 }
+
+void Map::generatePoints()
+{
+    for(int i=0; i < this->visibleRows; i++)
+    {
+        for(int j=0; j < this->visibleCols; j++)
+        {
+            if(getCell(i, j)->getCellType() == cellType::Path)
+            {
+                int vertical = 0, horizontal = 0;
+
+                if(i > 0 and getCell(i-1, j)->getCellType() != cellType::Wall)
+                    vertical++;
+                if(i+1 < this->visibleRows and getCell(i+1, j)->getCellType() != cellType::Wall)
+                    vertical++;
+                if(j > 0 and getCell(i, j-1)->getCellType() != cellType::Wall)
+                    horizontal++;
+                if(j+1 < this->visibleCols and getCell(i, j+1)->getCellType() != cellType::Wall)
+                    horizontal++;
+
+                // if(horizontal+vertical > 0)
+                if(horizontal+vertical == 1 or (horizontal > 0 and vertical > 0))
+                    setCellAtGrid(i, j, cellType::Decision);
+                else if(horizontal+vertical == 0)
+                    setCellAtGrid(i, j, cellType::Wall);
+            }
+        }
+    }
+}
+
+void Map::fillInacessible()
+{
+    generatePoints();
+    QList<QPoint> decisions;
+    Graph graph;
+
+    // Achar pontos de decisão
+    for(int i=0; i<this->visibleRows; i++)
+    {
+        for(int j=0; j<this->visibleCols; j++)
+        {
+            if(getCell(i, j)->getCellType() == cellType::Decision){
+                decisions.push_back({i, j});
+                findMoves(i, j, graph);
+            }
+        }
+    }
+
+    graph.insert(QPair<int, int>(this->endPos.y(), this->endPos.x()), QList<QPair<int, int>>());
+    findMoves(this->startPos.y(), this->startPos.x(), graph);
+
+    if(!checkConectivity(graph, true))
+    {
+        QMessageBox messageBox;
+        messageBox.setFixedSize(500,200);
+        messageBox.critical(0, "Não é possível preencher", "A entrada do Labirinto não está conectada com a saída");
+        return;
+    }
+
+    while(graph.size() > 0)
+    {
+        QPair<int, int> node = graph.firstKey();
+        int i, j;
+
+        setCellAtGrid(node.first, node.second, cellType::Wall);
+
+        // Cima
+        for(i=node.first-1, j=node.second; i>= 0; i--)
+        {
+            if(getCell(i, j)->getCellType() != cellType::Path)
+                break;
+            else
+                setCellAtGrid(i, j, cellType::Wall);
+        }
+
+        // Baixo
+        for(i=node.first+1, j=node.second; i < this->visibleRows; i++)
+        {
+            if(getCell(i, j)->getCellType() != cellType::Path)
+                break;
+            else
+                setCellAtGrid(i, j, cellType::Wall);
+        }
+
+        // Esquerda
+        for(i=node.first, j=node.second-1; j >= 0; j--)
+        {
+            if(getCell(i, j)->getCellType() != cellType::Path)
+                break;
+            else
+                setCellAtGrid(i, j, cellType::Wall);
+        }
+
+        // Direita
+        for(i=node.first, j=node.second+1; j < this->visibleCols; j++)
+        {
+            if(getCell(i, j)->getCellType() != cellType::Path)
+                break;
+            else
+                setCellAtGrid(i, j, cellType::Wall);
+        }
+        graph.remove(node);
+    }
+}
+
+

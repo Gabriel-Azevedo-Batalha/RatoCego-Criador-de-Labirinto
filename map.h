@@ -32,8 +32,11 @@ public:
     void setEndPos(int x, int y);
     void setCellAtGrid(int i, int j, cellType type);
     QJsonObject getJSON();
-    bool checkConectivity(const Graph& graph);
+    bool checkConectivity(Graph& graph, bool onlyStart);
     bool isConnected();
+    void generatePoints();
+    void clearPoints();
+    void fillInacessible();
 
 public slots:
     void increaseRows();
